@@ -1,0 +1,58 @@
+$prefix: '../../images/light';
+
+html[theme='light'] {
+    .icon-trash {
+        background-image: url($prefix + '/ic-trash.svg');
+    }
+    .icon-remove {
+        background-image: url($prefix + '/ic-remove.svg');
+    }
+    .icon-convert {
+        background-image: url($prefix + '/ic-convert.svg');
+    }
+    .icon-waiting {
+        background-image: url($prefix + '/ic-waiting.svg');
+    }
+    .icon-processing {
+        background-image: url($prefix + '/ic-processing.svg');
+    }
+    .icon-warn {
+        background-image: url($prefix + '/ic-warn.svg');
+    }
+    .icon-failed {
+        background-image: url($prefix + '/ic-failed.svg');
+    }
+    .icon-success {
+        background-image: url($prefix + '/ic-success.svg');
+    }
+    .icon-close {
+        background-image: url($prefix + '/base/ic-header-close.svg');
+    }
+    .icon-arrow {
+        background-image: url($prefix + '/ic-arrow.svg');
+    }
+    .icon-search {
+        background-image: url($prefix + '/ic-search.svg');
+    }
+    .icon-select-tick {
+        background-image: url($prefix + '/ic-select-tick.svg');
+    }
+    .icon-export-preset {
+        background-image: url($prefix + '/ic-export-preset.svg');
+    }
+    .icon-plus {
+        background-image: url($prefix + '/base/ic-slide-bar-plus.svg');
+    }
+    .icon-more {
+        background-image: url($prefix + '/ic-more.svg');
+    }
+    .icon-edit {
+        background-image: url($prefix + '/ic-edit.svg');
+    }
+    .icon-clone {
+        background-image: url($prefix + '/ic-clone.svg');
+    }
+    .icon-btn-plus {
+        background-image: url($prefix + '/ic-btn-plus.svg');
+    }
+}

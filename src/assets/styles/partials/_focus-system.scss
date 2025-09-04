@@ -1,0 +1,163 @@
+// Focus System - 統一的焦點樣式系統
+// 提供一致的鍵盤導航視覺反饋
+
+// 按鈕類元素的焦點樣式
+button:focus-visible,
+.el-button:focus-visible {
+    outline: none;
+    box-shadow: none;
+    outline: 2px solid #3297ff !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(50, 151, 255, 0.25) !important;
+}
+
+// 輸入框類元素的焦點樣式
+input:focus-visible:not(.combobox-list input),
+textarea:focus-visible,
+select:focus-visible {
+    outline: none;
+    box-shadow: none;
+    // outline: 2px solid #3297ff !important;
+    // outline-offset: -1px !important;
+    // border-color: #3297ff !important;
+    // background-color: rgba(50, 151, 255, 0.1) !important;
+}
+
+// ComboBox 搜索框的特殊處理 - 移除焦點樣式
+.combobox-list input:focus-visible {
+    outline: none;
+    box-shadow: none;
+    outline: none !important;
+    border-color: transparent !important;
+    background-color: transparent !important;
+}
+
+// ComboBox 按鈕的焦點樣式
+.combobox-button:focus-visible,
+.settings-combobox button:focus-visible {
+    outline: none;
+    box-shadow: none;
+    outline: 2px solid #3297ff !important;
+    outline-offset: 2px !important;
+    background-color: rgba(50, 151, 255, 0.1) !important;
+    border-color: #3297ff !important;
+    box-shadow: 0 0 0 3px rgba(50, 151, 255, 0.25) !important;
+}
+
+// 設定輸入框的焦點樣式
+.settings-input:focus-visible,
+.settings-counter-display:focus-visible,
+.settings-size-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+    outline: 2px solid #3297ff !important;
+    outline-offset: -1px !important;
+    border-color: #3297ff !important;
+    background-color: rgba(50, 151, 255, 0.1) !important;
+}
+
+// 主要按鈕的焦點樣式
+.primary-button:focus-visible {
+    outline: none;
+    box-shadow: none;
+    outline: 2px solid white !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px rgba(50, 151, 255, 0.5) !important;
+}
+
+// 次要按鈕的焦點樣式
+.secondary-button:focus-visible {
+    outline: none;
+    box-shadow: none;
+    outline: 2px solid #3297ff !important;
+    outline-offset: 2px !important;
+    background-color: rgba(50, 151, 255, 0.1) !important;
+    box-shadow: 0 0 0 3px rgba(50, 151, 255, 0.25) !important;
+}
+
+// 計數器按鈕的焦點樣式
+.settings-counter-button:focus-visible {
+    outline: none;
+    box-shadow: none;
+    outline: 2px solid #3297ff !important;
+    outline-offset: -1px !important;
+    background-color: rgba(50, 151, 255, 0.15) !important;
+    border-color: #3297ff !important;
+}
+
+// 下拉選單項目的焦點樣式
+.el-select-dropdown__item:focus,
+.el-select-dropdown__item:focus-visible {
+    outline: none;
+    box-shadow: none;
+    background-color: rgba(50, 151, 255, 0.1) !important;
+    outline: 2px solid #3297ff !important;
+    outline-offset: -2px !important;
+}
+
+// 深色主題下的焦點顏色調整
+html[theme='gray'] body *:focus-visible,
+html[theme='dark'] body *:focus-visible,
+html[theme='purple'] body *:focus-visible,
+html[theme='blue'] body *:focus-visible {
+    outline-color: #5eb1ff !important;
+}
+
+// 深色主題下按鈕的焦點樣式
+html[theme='gray'] body,
+html[theme='dark'] body,
+html[theme='purple'] body,
+html[theme='blue'] body {
+    button:focus-visible,
+    .el-button:focus-visible {
+        outline: 2px solid #5eb1ff !important;
+        box-shadow: 0 0 0 3px rgba(94, 177, 255, 0.25) !important;
+    }
+
+    // 深色主題下輸入框的焦點樣式
+    input:focus-visible:not(.combobox-list input),
+    textarea:focus-visible,
+    select:focus-visible {
+        // outline: 2px solid #5eb1ff !important;
+        // border-color: #5eb1ff !important;
+        // background-color: rgba(94, 177, 255, 0.1) !important;
+    }
+
+    // 深色主題下 ComboBox 搜索框
+    .combobox-list input:focus-visible {
+        outline: none !important;
+        border-color: transparent !important;
+        background-color: transparent !important;
+    }
+
+    // 深色主題下 ComboBox 按鈕的焦點樣式
+    .combobox-button:focus-visible,
+    .settings-combobox button:focus-visible {
+        outline: 2px solid #5eb1ff !important;
+        background-color: rgba(94, 177, 255, 0.1) !important;
+        border-color: #5eb1ff !important;
+        box-shadow: 0 0 0 3px rgba(94, 177, 255, 0.25) !important;
+    }
+
+    // 深色主題下設定輸入框的焦點樣式
+    .settings-input:focus-visible,
+    .settings-counter-display:focus-visible,
+    .settings-size-input:focus-visible {
+        outline: 2px solid #5eb1ff !important;
+        border-color: #5eb1ff !important;
+        background-color: rgba(94, 177, 255, 0.1) !important;
+    }
+
+    // 深色主題下主要按鈕的焦點樣式
+    .primary-button:focus-visible {
+        outline: 2px solid white !important;
+        box-shadow: 0 0 0 4px rgba(94, 177, 255, 0.5) !important;
+    }
+
+    // 深色主題下次要按鈕的焦點樣式
+    .secondary-button:focus-visible {
+        outline: 2px solid #5eb1ff !important;
+        background-color: rgba(94, 177, 255, 0.1) !important;
+        box-shadow: 0 0 0 3px rgba(94, 177, 255, 0.25) !important;
+    }
+}

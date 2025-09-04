@@ -1,0 +1,88 @@
+// @use '@styles/modules/mixins' as mixins;
+// #app:has(~ .el-message)::after {
+//     content: '';
+//     position: absolute;
+//     top: 0;
+//     right: 0;
+//     bottom: 0;
+//     left: 0;
+//     pointer-events: none;
+//     // background: var(--box-overlay-background);
+// }
+// .el-message {
+//     background: var(--box-background) !important;
+//     border-top: var(--box-border-top);
+//     border-left: var(--box-border-left);
+//     border-right: var(--box-border-right);
+//     border-bottom: var(--box-border-bottom);
+//     box-shadow: var(--box-border-shadow);
+//     backdrop-filter: var(--box-background-blur);
+//     box-sizing: border-box;
+//     border: none;
+//     height: 40px;
+//     padding: 0 8px;
+//     .el-icon {
+//         > * {
+//             display: none;
+//         }
+//     }
+//     .el-message__icon {
+//         --background-image: none;
+//         background-image: var(--background-image);
+//         background-position: center center;
+//         background-repeat: no-repeat;
+//         background-size: 16px 16px;
+//         color: transparent;
+//         width: 24px;
+//         height: 24px;
+//         margin-right: 4px;
+//         &.el-message-icon--success {
+//             --background-image: url('/images/normal/base/component/ic-success.svg');
+//         }
+//         &.el-message-icon--error {
+//             --background-image: url('/images/normal/base/component/ic-error.svg');
+//         }
+//         &.el-message-icon--warning {
+//             --background-image: url('/images/normal/base/component/ic-warning.svg');
+//         }
+//     }
+//     .el-message__content {
+//         padding-right: 45px !important;
+//         color: var(--color);
+//     }
+//     .el-message__closeBtn {
+//         &:before {
+//             --background-color: var(--color-black-10);
+//             @include mixins.dark {
+//                 --background-color: var(--color-dark-lightgray-10);
+//             }
+//             content: '';
+//             position: absolute;
+//             left: -9px;
+//             width: 1px;
+//             height: 100%;
+//             background: var(--background-color);
+//         }
+//         --background-image: url('/images/light/base/component/ic-close.svg');
+//         @include mixins.dark {
+//             --background-image: url('/images/dark/base/component/ic-close.svg');
+//         }
+//         right: 8px;
+//         background-color: transparent;
+//         background-image: var(--background-image);
+//         background-position: center center;
+//         background-repeat: no-repeat;
+//         background-size: 24px 24px;
+//         color: var(--color-gray);
+//         width: 24px;
+//         height: 24px;
+//         border-radius: 6px;
+//         &:hover {
+//             --background-color: var(--color-dark-10);
+//             @include mixins.dark {
+//                 --background-color: var(--color-dark-lightgray-10);
+//             }
+//             background-color: var(--background-color);
+//         }
+//     }
+// }

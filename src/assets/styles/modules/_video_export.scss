@@ -1,0 +1,158 @@
+// .video-export {
+//     font-family: var(--font-family-mono);
+//     color: var(--color-text-primary);
+//     padding: 16px;
+//     background-color: var(--color-bg-hover);
+//     border-radius: var(--box-border-top);
+//     max-width: 400px;
+//     margin: auto;
+
+//     &__header {
+//         margin-bottom: 16px;
+//         display: flex;
+//         padding: 6px 12px 6px 6px;
+//         align-items: center;
+//         gap: 12px;
+//         align-self: stretch;
+//         border-radius: 8px;
+//         background: rgba(247, 248, 248, 0.05);
+
+//         & > .video-export__thumbnail-wrapper {
+//             position: relative;
+
+//             & > .video-export__thumbnail {
+//                 width: 120px;
+//                 height: 90px;
+//                 border-radius: 4px;
+//             }
+
+//             & > .video-export__ext-badge {
+//                 display: flex;
+//                 height: 16px;
+//                 padding: 0px 4px;
+//                 justify-content: center;
+//                 align-items: center;
+//                 position: absolute;
+//                 left: 4px;
+//                 top: 4px;
+//                 color: var(--color-white);
+//                 background-color: var(--color-black-50);
+//                 border-radius: 4px;
+//                 border: 1px solid rgba(0, 0, 0, 0.1);
+//                 backdrop-filter: blur(25px);
+//                 text-align: center;
+//                 font-family: "SF Mono";
+//                 font-size: 10px;
+//                 font-style: normal;
+//                 font-weight: 500;
+//                 line-height: 12px; /* 120% */
+//             }
+//         }
+
+//         & > .video-export__details {
+//             flex: 1;
+
+//             & > .video-export__title {
+//                 margin-bottom: 4px;
+//                 font-size: 14px;
+//                 line-height: 22px;
+//                 font-weight: var(--font-weight-bold);
+//             }
+
+//             & > .video-export__info {
+//                 margin: 0 0 2px 0;
+//                 // font-size: 14px;
+//                 color: var(--color-text-secondary);
+//                 // color: rgba(247, 248, 248, 0.6);
+//                 font-family: "SF Pro Display";
+//                 font-size: 12px;
+//                 font-style: normal;
+//                 font-weight: 400;
+//                 line-height: 18px; /* 163.636% */
+//             }
+//         }
+//     }
+
+//     &__settings {
+//         margin-bottom: 16px;
+
+//         & > .video-export__export-options {
+//             margin-bottom: 16px;
+//             display: flex;
+//             flex-direction: column;
+//             gap: 16px;
+
+//             & > .video-export__export-group {
+//                 margin-bottom: 8px;
+//                 display: flex;
+//                 align-items: center;
+//                 gap: 8px;
+
+//                 & > .video-export__input {
+//                     width: 50px;
+//                     padding: 2px;
+
+//                     border-radius: 6px;
+//                     border: 1px solid rgba(255, 255, 255, 0.15);
+//                     background: rgba(0, 0, 0, 0.2);
+//                 }
+//             }
+//         }
+
+//         & > .video-export__format {
+//             margin-bottom: 16px;
+
+//             & > .video-export__format-options {
+//                 display: flex;
+//                 gap: 8px;
+//             }
+
+//             & > .video-export__quality,
+//             & > .video-export__size {
+//                 margin-top: 8px;
+//                 display: flex;
+//                 align-items: center;
+//                 gap: 8px;
+
+//                 & > .video-export__input {
+//                     width: 70px;
+//                 }
+//             }
+//         }
+
+//         &__naming {
+//             & > .video-export__naming-options {
+//                 margin-bottom: 8px;
+//             }
+
+//             &__preview {
+//                 font-size: 14px;
+//                 color: var(--color-text-tertiary);
+
+//                 & > .video-export__ext-icon {
+//                     margin-left: 4px;
+//                     width: 16px;
+//                     height: 16px;
+//                     vertical-align: middle;
+//                 }
+//             }
+//         }
+//     }
+
+//     &__footer {
+//         text-align: center;
+
+//         & > .video-export__export-button {
+//             background-color: var(--color-primary);
+//             color: var(--color-white);
+//             padding: 8px 16px;
+//             border: none;
+//             border-radius: var(--box-border-bottom);
+//             cursor: pointer;
+
+//             &:hover {
+//                 background-color: var(--color-primary-80);
+//             }
+//         }
+//     }
+// }

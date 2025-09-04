@@ -1,0 +1,38 @@
+@use '@styles/modules/mixins' as mixins;
+.el-progress {
+    .el-progress-bar {
+        border-radius: 0;
+        .el-progress-bar__outer {
+            height: 2px !important;
+            background: var(--color-bg-active);
+            border-radius: inherit;
+            .el-progress-bar__inner {
+                border-radius: inherit;
+            }
+        }
+    }
+    &.el-progress--line {
+        .el-progress__text {
+            color: var(--color-text);
+        }
+    }
+    &.el-progress--circle {
+        overflow: hidden;
+        .el-progress-circle {
+            .el-progress-circle__track {
+                --color: var(--color-dark-10);
+                @include mixins.dark {
+                    --color: var(--color-lightgray-10);
+                }
+                stroke: var(--color);
+            }
+            .el-progress-circle__path {
+                --color: var(--color-dark);
+                @include mixins.dark {
+                    --color: var(--color-lightgray);
+                }
+                stroke: var(--color);
+            }
+        }
+    }
+}

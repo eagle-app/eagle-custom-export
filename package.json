@@ -1,0 +1,52 @@
+{
+    "name": "eagle-plugin-template",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+        "format": "prettier --write src/",
+        "build": "vite build",
+        "debug": "vite build --watch",
+        "model": "cd .. && ./main start --model lama --device mps --port 8080",
+        "test": "vitest",
+        "test:ui": "vitest --ui"
+    },
+    "dependencies": {
+        "@imengyu/vue3-context-menu": "^1.3.3",
+        "@tailwindcss/vite": "^4.1.11",
+        "@vee-validate/zod": "^4.15.1",
+        "@vueuse/core": "^13.6.0",
+        "async": "^3.2.5",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "element-plus": "^2.7.6",
+        "interactjs": "^1.10.19",
+        "lucide-vue-next": "^0.536.0",
+        "reka-ui": "^2.4.1",
+        "tailwind-merge": "^3.3.1",
+        "tailwindcss": "^4.1.11",
+        "tw-animate-css": "^1.3.6",
+        "vee-validate": "^4.15.1",
+        "vue": "^3.4.29",
+        "vue-mousetrap": "^1.0.5",
+        "vue-tippy": "^6.3.1",
+        "vue-virtual-scroller": "^2.0.0-beta.8",
+        "zod": "^3.25.76"
+    },
+    "devDependencies": {
+        "@rushstack/eslint-patch": "^1.8.0",
+        "@vitejs/plugin-vue": "^5.0.5",
+        "@vitest/ui": "^3.2.4",
+        "@vue/eslint-config-prettier": "^9.0.0",
+        "eslint": "^8.57.0",
+        "eslint-plugin-vue": "^9.23.0",
+        "fast-glob": "^3.3.1",
+        "prettier": "^3.2.5",
+        "sass": "^1.68.0",
+        "unplugin-auto-import": "^0.16.6",
+        "unplugin-vue-components": "^0.25.2",
+        "vite": "^5.3.1",
+        "vitest": "^3.2.4"
+    }
+}

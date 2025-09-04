@@ -1,0 +1,36 @@
+@use '@styles/modules/mixins' as mixins;
+
+html.no-transition {
+    * {
+        transition: none !important;
+    }
+}
+
+.icon {
+    --background: transparent;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: var(--background);
+    transition: background-color var(--animation-fast);
+    &:hover {
+        --background: var(--color-bg-hover);
+    }
+    &:active {
+        --background: var(--color-bg-active);
+    }
+}
+
+.dash {
+    display: inline-block;
+    width: 1px;
+    height: 16px;
+    background: var(--color-border-secondary);
+    margin: auto 8px;
+}
+
+.img-border {
+    outline: var(--color-black-10) solid 1px;
+    outline-offset: -1px;
+}

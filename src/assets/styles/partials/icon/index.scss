@@ -1,0 +1,79 @@
+@use './light.scss';
+@use './dark.scss';
+
+.icon {
+    display: block;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: auto 0;
+    flex-shrink: 0;
+}
+.icon-trash {
+    width: 24px;
+    height: 24px;
+}
+.icon-remove {
+    width: 16px;
+    height: 16px;
+}
+.icon-convert {
+    width: 16px;
+    height: 16px;
+}
+.icon-waiting {
+    width: 16px;
+    height: 16px;
+}
+.icon-processing {
+    width: 16px;
+    height: 16px;
+    animation: loading 2s infinite linear;
+}
+.icon-warn {
+    width: 16px;
+    height: 16px;
+}
+.icon-failed {
+    width: 16px;
+    height: 16px;
+}
+.icon-success {
+    width: 16px;
+    height: 16px;
+}
+.icon-close {
+    width: 24px;
+    height: 24px;
+}
+.icon-search {
+    width: 13px;
+    height: 13px;
+}
+.icon-export-preset {
+    width: 24px;
+    height: 24px;
+}
+.icon-plus {
+    width: 24px;
+    height: 24px;
+}
+.icon-more {
+    width: 24px;
+    height: 24px;
+}
+.icon-edit {
+    width: 16px;
+    height: 16px;
+}
+.icon-clone {
+    width: 16px;
+    height: 16px;
+}
+.icon-btn-plus {
+    width: 16px;
+    height: 16px;
+}
+.icon-arrow {
+    width: 8px;
+    height: 6px;
+}

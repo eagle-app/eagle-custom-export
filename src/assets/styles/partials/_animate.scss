@@ -1,0 +1,15 @@
+:root {
+    --animation-timing: cubic-bezier(.165,.84,.44,1);
+    --animation-fast: 150ms var(--animation-timing);
+    --animation-normal: 200ms var(--animation-timing);  
+    --animation-slow: 300ms var(--animation-timing);
+}
+
+@keyframes loading {
+    0% {
+        rotate: 0deg;
+    }
+    100% {
+        rotate: 360deg;
+    }
+}

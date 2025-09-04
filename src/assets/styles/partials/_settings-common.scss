@@ -1,0 +1,202 @@
+// 設置組件共享樣式
+// Linus 的原則：不要重複你自己 (DRY - Don't Repeat Yourself)
+
+@use '../modules/mixins' as mixins;
+
+// 🎯 設置選項通用樣式 - 統一所有設置項的外觀
+%settings-option-base {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 0 0 4px;
+  gap: 8px;
+
+  > label {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-secondary);
+    line-height: 20px;
+    min-width: 60px;
+    text-align: left;
+    user-select: none;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+// 🎯 輸入框通用樣式 - 統一所有輸入框的外觀
+%settings-input-base {
+  height: 32px;
+  outline: 1px solid var(--color-border-primary);
+  outline-offset: -1px;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  background: var(--color-white-50);
+
+  @include mixins.dark {
+    background: var(--color-black-20);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  &::placeholder {
+    color: var(--color-text-tertiary);
+  }
+}
+
+// 🎯 下拉選單通用樣式 - 統一所有下拉選單的外觀
+%settings-combobox-base {
+  min-width: 120px;
+  max-width: 120px;
+  height: 32px;
+
+  .combobox-button {
+    width: 100%;
+    height: 100%;
+    background: var(--color-white-50);
+    border: none;
+    outline: 1px solid var(--color-border-primary);
+    outline-offset: -1px;
+
+    &:hover {
+      background: var(--color-bg-hover);
+    }
+
+    @include mixins.dark {
+      background: var(--color-black-20);
+    }
+  }
+
+  &.is-active {
+    .combobox-button {
+      outline: 1px solid var(--color-primary);
+      outline-offset: -1px;
+    }
+  }
+}
+
+// 🎯 設置組通用樣式 - 統一所有設置組的間距
+%settings-group-base {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// 🎯 數字輸入框樣式 - 隱藏瀏覽器的數字調節按鈕
+%number-input-clean {
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+// 實際使用的 CSS 類
+.settings-option {
+  @extend %settings-option-base;
+}
+
+.settings-input {
+  @extend %settings-input-base;
+}
+
+.settings-input[type="number"] {
+  @extend %number-input-clean;
+}
+
+.settings-group {
+  @extend %settings-group-base;
+}
+
+// 特殊輸入框包裝器
+.size-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 120px;
+
+  .settings-input {
+    flex: 1;
+    width: 88px;
+  }
+
+  .unit {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+  }
+}
+
+// 計數器樣式
+.settings-counter {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border-primary);
+  border-radius: 6px;
+  width: 120px;
+  overflow: hidden;
+  background: var(--color-white-50);
+
+  @include mixins.dark {
+    background: var(--color-black-20);
+  }
+
+  .settings-counter-button {
+    background: transparent;
+    color: var(--color-text-primary);
+    border: none;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all var(--animation-normal);
+
+    &:hover:not(.settings-counter-button-disabled) {
+      background: var(--color-bg-hover);
+    }
+
+    &.settings-counter-button-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.settings-counter-button-minus {
+      border-right: 1px solid var(--color-border-primary);
+    }
+
+    &.settings-counter-button-plus {
+      border-left: 1px solid var(--color-border-primary);
+    }
+  }
+
+  .settings-counter-display {
+    background: transparent;
+    color: var(--color-text-primary);
+    border: none;
+    font-size: 13px;
+    text-align: center;
+    width: 56px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+
+    &:focus {
+      outline: none;
+    }
+
+    @extend %number-input-clean;
+  }
+}

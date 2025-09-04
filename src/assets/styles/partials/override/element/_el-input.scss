@@ -1,0 +1,42 @@
+@use '@styles/modules/mixins' as mixins;
+.el-input {
+    height: 24px;
+    font-size: 13px;
+    .el-input__wrapper {
+        --border-color: transparent;
+        font-size: inherit;
+        padding: 0 6px;
+        background: transparent;
+        transition: none;
+        border: 1px solid var(--border-color);
+        box-shadow: none;
+        border-radius: 6px;
+
+        input.el-input__inner {
+            color: var(--color-text-primary);
+            font-size: inherit;
+        }
+
+        &:hover,
+        &:focus {
+            --background: var(--color-white-50);
+            @include mixins.dark {
+                --background: var(--color-black-20);
+            }
+            background: var(--background);
+        }
+        &:hover {
+            --border-color: var(--color-border-primary);
+        }
+        &.is-focus {
+            --border-color: var(--color-primary);
+        }
+
+        .el-input__prefix {
+            margin-left: 6px;
+        }
+        .el-input__suffix {
+            margin-right: 6px;
+        }
+    }
+}
