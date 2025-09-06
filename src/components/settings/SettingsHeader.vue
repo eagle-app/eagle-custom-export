@@ -62,7 +62,7 @@ const handleClose = () => {
   .button-group {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
 
   :deep(.header-button) {

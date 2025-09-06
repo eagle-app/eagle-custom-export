@@ -4,6 +4,7 @@ const { exec, spawn } = require('child_process');
 const execAsync = promisify(exec);
 const fs = require('fs').promises;
 const { validateOutputFile, getOutputPath } = require('../../validate');
+const { progressiveScale, calculateNewDimensions } = require('../../../utils/canvasScaler');
 
 class heicHeifConverter {
     constructor() {
@@ -300,21 +301,12 @@ class heicHeifConverter {
                         const image = imageData[0];
 
                         // 建立 Canvas 和圖像資料
-                        const canvas = document.createElement('canvas');
                         const [w, h] = [image.get_width(), image.get_height()];
                         
-                        // 如果需要調整尺寸，先計算新尺寸
-                        let finalWidth = w;
-                        let finalHeight = h;
-                        
-                        if (options.sizeType) {
-                            const newDimensions = this.calculateNewDimensions(w, h, options);
-                            finalWidth = newDimensions.width;
-                            finalHeight = newDimensions.height;
-                        }
-                        
-                        canvas.width = finalWidth;
-                        canvas.height = finalHeight;
+                        // 先創建原始尺寸的 Canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
 
                         const ctx = canvas.getContext('2d');
                         const image_data = ctx.createImageData(w, h);
@@ -329,26 +321,23 @@ class heicHeifConverter {
                         await new Promise((resolveDisplay, rejectDisplay) => {
                             image.display(image_data, (display_image_data) => {
                                 try {
-                                    // 創建臨時 Canvas 來處理原始圖像
-                                    const tempCanvas = document.createElement('canvas');
-                                    tempCanvas.width = w;
-                                    tempCanvas.height = h;
-                                    const tempCtx = tempCanvas.getContext('2d');
-                                    tempCtx.putImageData(display_image_data, 0, 0);
-                                    
-                                    // 如果需要調整尺寸，將圖像繪製到最終 Canvas
-                                    if (options.sizeType) {
-                                        ctx.drawImage(tempCanvas, 0, 0, w, h, 0, 0, finalWidth, finalHeight);
-                                    } else {
-                                        ctx.putImageData(display_image_data, 0, 0);
-                                    }
-                                    
+                                    ctx.putImageData(display_image_data, 0, 0);
                                     resolveDisplay();
                                 } catch (e) {
                                     rejectDisplay(e);
                                 }
                             });
                         });
+
+                        // 處理尺寸調整
+                        let finalCanvas = canvas;
+                        if (options.sizeType) {
+                            const newDimensions = calculateNewDimensions(w, h, options);
+                            if (newDimensions.width !== w || newDimensions.height !== h) {
+                                // 使用漸進式縮放
+                                finalCanvas = progressiveScale(canvas, newDimensions.width, newDimensions.height);
+                            }
+                        }
 
                         // 轉換為目標格式並儲存 (format 已在前面驗證過)
                         const outputPath = path.join(dest, `${options.fileName}.${format}`);
@@ -361,7 +350,7 @@ class heicHeifConverter {
                         
                         // 轉換為 blob 並儲存
                         const mimeType = this.getMimeType(format);
-                        const dataUrl = canvas.toDataURL(mimeType, quality);
+                        const dataUrl = finalCanvas.toDataURL(mimeType, quality);
                         const base64Data = dataUrl.split(',')[1];
                         const buffer = Buffer.from(base64Data, 'base64');
                         
@@ -393,23 +382,24 @@ class heicHeifConverter {
                                 };
                             });
 
+                            // 創建原始尺寸的 Canvas
                             const canvas = document.createElement('canvas');
-                            let finalWidth = image.width;
-                            let finalHeight = image.height;
-                            
-                            // 如果需要調整尺寸
-                            if (options.sizeType) {
-                                const newDimensions = this.calculateNewDimensions(image.width, image.height, options);
-                                finalWidth = newDimensions.width;
-                                finalHeight = newDimensions.height;
-                            }
-                            
-                            canvas.width = finalWidth;
-                            canvas.height = finalHeight;
+                            canvas.width = image.width;
+                            canvas.height = image.height;
                             const ctx = canvas.getContext('2d');
-                            ctx.drawImage(image, 0, 0, finalWidth, finalHeight);
+                            ctx.drawImage(image, 0, 0);
+                            
+                            // 處理尺寸調整
+                            let finalCanvas = canvas;
+                            if (options.sizeType) {
+                                const newDimensions = calculateNewDimensions(image.width, image.height, options);
+                                if (newDimensions.width !== image.width || newDimensions.height !== image.height) {
+                                    // 使用漸進式縮放
+                                    finalCanvas = progressiveScale(canvas, newDimensions.width, newDimensions.height);
+                                }
+                            }
 
-                            if (finalWidth && finalHeight) {
+                            if (finalCanvas.width && finalCanvas.height) {
                                 console.log('Successfully loaded as JPG/PNG');
                                 
                                 // 轉換為目標格式並儲存 (format 已在前面驗證過)
@@ -421,7 +411,7 @@ class heicHeifConverter {
                                 }
                                 
                                 const mimeType = this.getMimeType(format);
-                                const dataUrl = canvas.toDataURL(mimeType, quality);
+                                const dataUrl = finalCanvas.toDataURL(mimeType, quality);
                                 const base64Data = dataUrl.split(',')[1];
                                 const buffer = Buffer.from(base64Data, 'base64');
                                 
@@ -459,76 +449,6 @@ class heicHeifConverter {
         });
     }
 
-    /**
-     * 計算新的尺寸 (用於 Canvas 轉換)
-     */
-    calculateNewDimensions(originalWidth, originalHeight, options) {
-        let newWidth = originalWidth;
-        let newHeight = originalHeight;
-
-        switch (options.sizeType) {
-            case 'maxWidth':
-                if (originalWidth > options.sizeValue) {
-                    newWidth = options.sizeValue;
-                    newHeight = Math.round(originalHeight * (options.sizeValue / originalWidth));
-                }
-                break;
-
-            case 'maxHeight':
-                if (originalHeight > options.sizeValue) {
-                    newHeight = options.sizeValue;
-                    newWidth = Math.round(originalWidth * (options.sizeValue / originalHeight));
-                }
-                break;
-
-            case 'minWidth':
-                if (originalWidth < options.sizeValue) {
-                    newWidth = options.sizeValue;
-                    newHeight = Math.round(originalHeight * (options.sizeValue / originalWidth));
-                }
-                break;
-
-            case 'minHeight':
-                if (originalHeight < options.sizeValue) {
-                    newHeight = options.sizeValue;
-                    newWidth = Math.round(originalWidth * (options.sizeValue / originalHeight));
-                }
-                break;
-
-            case 'maxSide':
-                const maxSide = Math.max(originalWidth, originalHeight);
-                if (maxSide > options.sizeValue) {
-                    const ratio = options.sizeValue / maxSide;
-                    newWidth = Math.round(originalWidth * ratio);
-                    newHeight = Math.round(originalHeight * ratio);
-                }
-                break;
-
-            case 'minSide':
-                const minSide = Math.min(originalWidth, originalHeight);
-                if (minSide < options.sizeValue) {
-                    const ratio = options.sizeValue / minSide;
-                    newWidth = Math.round(originalWidth * ratio);
-                    newHeight = Math.round(originalHeight * ratio);
-                }
-                break;
-
-            case 'exact':
-                if (options.width && options.height) {
-                    newWidth = options.width;
-                    newHeight = options.height;
-                } else if (options.width) {
-                    newWidth = options.width;
-                    newHeight = Math.round(originalHeight * (options.width / originalWidth));
-                } else if (options.height) {
-                    newHeight = options.height;
-                    newWidth = Math.round(originalWidth * (options.height / originalHeight));
-                }
-                break;
-        }
-
-        return { width: newWidth, height: newHeight };
-    }
 
     /**
      * 根據格式獲取 MIME 類型

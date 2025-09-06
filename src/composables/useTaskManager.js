@@ -399,14 +399,11 @@ export function useTaskManager(exportSettings, mainInstance) {
     const updateAllTasksNewFormat = (newFormat) => {
         // 對於 shallowRef，需要創建新陣列
         const newTasks = tasks.value.map((task) => {
-            if (task.status === 'waiting') {
-                return {
-                    ...task,
-                    newFormat,
-                    updatedAt: new Date()
-                };
-            }
-            return task;
+            return {
+                ...task,
+                newFormat,
+                updatedAt: new Date()
+            };
         });
         tasks.value = newTasks;
     };

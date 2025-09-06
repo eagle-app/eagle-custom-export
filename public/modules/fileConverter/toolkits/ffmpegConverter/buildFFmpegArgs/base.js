@@ -1,4 +1,6 @@
 const path = require('path');
+const os = require('os');
+const { execSync } = require('child_process');
 
 /**
  * FFmpeg 命令構建器基礎類
@@ -287,6 +289,128 @@ class BaseBuilder {
      */
     getOutputPath(dest, options) {
         return path.join(dest, `${options.fileName}.${options.format}`);
+    }
+
+    /**
+     * 獲取系統資訊和GPU類型
+     * @returns {Object} 包含作業系統類型和GPU類型的物件
+     */
+    getSystemInfo() {
+        const osType = os.type();
+        let gpuType = null;
+
+        if (osType === 'Windows_NT') {
+            // 嘗試多種方法來偵測 GPU
+            gpuType = this.detectWindowsGPU();
+        }
+
+        return { osType, gpuType };
+    }
+
+    /**
+     * 偵測 Windows 系統的 GPU 類型
+     * @returns {string|null} GPU 類型 ('NVIDIA', 'AMD', 'Intel') 或 null
+     */
+    detectWindowsGPU() {
+        // 方法 1: 嘗試使用 PowerShell (更現代的方法)
+        try {
+            const gpuInfo = execSync('powershell -Command "Get-WmiObject Win32_VideoController | Select-Object -ExpandProperty Name"', {
+                encoding: 'utf8',
+                windowsHide: true
+            }).toString();
+            
+            const gpuName = gpuInfo.trim().toUpperCase();
+            if (gpuName) {
+                return this.identifyGPUType(gpuName);
+            }
+        } catch (error) {
+            console.log('PowerShell method failed, trying wmic...');
+        }
+
+        // 方法 2: 嘗試使用 wmic (舊版 Windows)
+        try {
+            const gpuInfo = execSync('wmic path win32_VideoController get name', {
+                encoding: 'utf8',
+                windowsHide: true
+            }).toString();
+            
+            const gpuLines = gpuInfo
+                .split('\n')
+                .map((line) => line.trim())
+                .filter((line) => line && line !== 'Name');
+            
+            if (gpuLines[0]) {
+                return this.identifyGPUType(gpuLines[0].toUpperCase());
+            }
+        } catch (error) {
+            console.log('wmic method failed');
+        }
+
+        // 如果兩種方法都失敗，回傳 null 使用 CPU 軟體編碼
+        console.warn('Unable to detect GPU type, will use CPU software encoding');
+        return null;
+    }
+
+    /**
+     * 根據 GPU 名稱識別類型
+     * @param {string} gpuName - GPU 名稱（已轉為大寫）
+     * @returns {string|null} GPU 類型或 null
+     */
+    identifyGPUType(gpuName) {
+        // NVIDIA GPU 識別
+        if (gpuName.includes('NVIDIA') || 
+            gpuName.includes('GEFORCE') || 
+            gpuName.includes('RTX') || 
+            gpuName.includes('GTX') ||
+            gpuName.includes('QUADRO') ||
+            gpuName.includes('TESLA')) {
+            return 'NVIDIA';
+        }
+        
+        // AMD GPU 識別
+        if (gpuName.includes('AMD') || 
+            gpuName.includes('RADEON') || 
+            gpuName.includes('RX') ||
+            gpuName.includes('VEGA') ||
+            gpuName.includes('FIREPRO')) {
+            return 'AMD';
+        }
+        
+        // Intel GPU 識別
+        if (gpuName.includes('INTEL') || 
+            gpuName.includes('UHD') || 
+            gpuName.includes('HD GRAPHICS') || 
+            gpuName.includes('IRIS') ||
+            gpuName.includes('ARC')) {
+            return 'Intel';
+        }
+
+        // 無法識別
+        console.log(`Unable to identify GPU type from: ${gpuName}`);
+        return null;
+    }
+
+    /**
+     * 通用的編解碼器參數獲取方法
+     * @param {Object} options - 轉換選項
+     * @param {Function} getGPUArgsCallback - 子類別提供的GPU參數獲取回調函數
+     * @returns {Array} 編解碼器參數陣列
+     */
+    getCodecArgs(options, getGPUArgsCallback) {
+        const { osType, gpuType } = this.getSystemInfo();
+
+        console.log(osType, gpuType);
+
+        if (osType === 'Darwin') {
+            return getGPUArgsCallback(options, osType, gpuType);
+        }
+
+        if (osType === 'Windows_NT') {
+            return getGPUArgsCallback(options, osType, gpuType);
+        }
+
+        // 其他作業系統預設使用軟體編解碼器
+        return getGPUArgsCallback(options, osType, null);
     }
 }
 

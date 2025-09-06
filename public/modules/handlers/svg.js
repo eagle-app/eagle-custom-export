@@ -44,7 +44,7 @@ class SVG extends BaseHandler {
             await fs.mkdir(this.tempDir, { recursive: true });
             
             // SVG -> PNG (使用 Canvas)
-            await this.canvasConverter.convert(src, this.tempDir, tempFileOptions);
+            await this.canvasConverter.convert(src, this.tempDir, tempFileOptions);            
             
             // PNG -> 目標格式 (使用 FFmpeg)
             await this.ffmpegConverter.convert(tempFilePath, dest, options);

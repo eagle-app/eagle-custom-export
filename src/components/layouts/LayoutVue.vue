@@ -38,7 +38,7 @@ const main = inject('main');
         display: flex;
         flex-direction: column;
         overflow: visible;
-        padding: 6px;
+        padding: 8px;
     }
 
     .layout-main {

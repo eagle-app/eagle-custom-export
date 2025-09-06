@@ -40,7 +40,7 @@ class FormatValidator {
         ];
 
         this.supportedExportFormats = [
-            'jpg', 'png', 'bmp', 'gif', 'tif', 'ico', 'webp', 'avif', 'hdr', 'exr', 'tga', 'mp4', 'webm'
+            'jpg', 'png', 'bmp', 'gif', 'tif', 'tiff', 'ico', 'webp', 'avif', 'hdr', 'exr', 'tga', 'mp4', 'webm'
         ]
 
         // 定義影片格式列表
@@ -160,6 +160,8 @@ class FormatValidator {
                     errorMessage: this.errorMessages.fileNotSupported
                 };
             }
+
+            targetFormat = (targetFormat === "original") ? item.ext : targetFormat;
 
             // 如果導出格式不支援，設置為警告狀態
             if (!this.supportedExportFormats.includes(targetFormat)) {

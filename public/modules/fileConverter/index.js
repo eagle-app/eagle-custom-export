@@ -2,6 +2,11 @@ const path = require('path');
 const fs = require('fs').promises;
 const Queue = require('./queue');
 
+// 初始化全局 ProcessManager 單例
+if (!global.processManager) {
+    global.processManager = require('./processManager');
+}
+
 class FileConverter {
 
     constructor() {
@@ -78,20 +83,36 @@ class FileConverter {
      * @returns {boolean} 是否應該直接複製
      */
     shouldCopyDirectly(inputExt, options) {
-        const outputFormat = options.format.toLowerCase();
-        const normalizedInputExt = inputExt.toLowerCase();
+        const targetFormat = options.format.toLowerCase();
+        const sourceExt = inputExt.toLowerCase();
 
-        // 檢查格式是否相同（考慮別名映射）
-        const inputHandler = this.getHandlerName(normalizedInputExt);
-        const outputHandler = this.getHandlerName(outputFormat);
-        const isSameFormat = (outputFormat === 'original') ||
-            (normalizedInputExt === outputFormat) ||
-            (inputHandler === outputHandler);
+        // 原始格式直接複製
+        if (targetFormat === 'original') {
+            return options.sizeType === 'original';
+        }
 
-        // 檢查是否沒有尺寸調整
-        const hasNoSizeChange = options.sizeType == 'original';
+        // 格式完全相同且無尺寸調整
+        if (sourceExt === targetFormat) {
+            return options.sizeType === 'original';
+        }
 
-        return isSameFormat && hasNoSizeChange;
+        // 檢查別名映射下的格式等價性
+        const sourceHandler = this._resolveActualHandler(sourceExt);
+        const targetHandler = this._resolveActualHandler(targetFormat);
+
+        return sourceHandler === targetHandler && options.sizeType === 'original';
+    }
+
+    /**
+     * 解析實際處理器名稱（處理 video 特殊情況）
+     * @private
+     * @param {string} format 格式名稱
+     * @returns {string} 實際處理器名稱
+     */
+    _resolveActualHandler(format) {
+        const baseHandler = this.getHandlerName(format);
+        // video 類型保持原始副檔名，其他格式使用別名映射結果
+        return baseHandler === 'video' ? format : baseHandler;
     }
 
     /**
@@ -244,8 +265,10 @@ class FileConverter {
                             // 呼叫 converter，它可能返回普通 Promise 或包含 killProcess 的物件
                             const conversionResult = converter.convert(task.src, taskOptions.output, taskOptions);
 
+
                             // 檢查是否是可取消的轉換
                             if (conversionResult && conversionResult.promise && conversionResult.killProcess) {
+
                                 // 可取消模式：等待 promise 完成，但保留 killProcess 引用
                                 await conversionResult.promise;
 
@@ -358,6 +381,11 @@ class FileConverter {
                         if (typeof onTaskComplete === 'function') {
                             onTaskComplete(errorResult);
                         }
+
+                        const outputPath = path.join(task.options.output, `${task.options.fileName}.${task.options.format}`);
+
+                        await fs.unlink(outputPath);
+
                     }
 
                     completedTasks++;
@@ -407,6 +435,7 @@ class FileConverter {
      */
     cancel() {
         console.log('[FileConverter] Cancelling all conversion tasks');
+        global.processManager.killAll();
         this.queue.cancel();
         this.isConverting = false;
     }

@@ -84,7 +84,7 @@ const tableHeaders = {
     thumbnail: { name: '', minWidth: 32 },
     name: { name: '', minWidth: 200, fill: true, line: true, padding: '8px' },
     format: { name: '', minWidth: 120, line: true, padding: '8px' },
-    dimensions: { name: '', minWidth: 220, line: true, padding: '8px' },
+    dimensions: { name: '', minWidth: 240, line: true, padding: '8px' },
     remove: { name: '', minWidth: 36, align: 'center' }
 };
 

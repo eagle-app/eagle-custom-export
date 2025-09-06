@@ -30,7 +30,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
   <div
     data-slot="command-input-wrapper"
     class="flex h-9 items-center gap-2"
-    style="height: inherit; padding-left: 10px; border-bottom:1px solid var(--color-border-secondary);"
+    style="height: inherit; padding-left: 10px;"
   >
     <SearchIcon v-if="props.showSearchIcon" class="size-4 shrink-0 opacity-50" />
     <ComboboxInput

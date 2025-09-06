@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { validateOutputFile, getOutputPath } = require('../../validate');
+const { progressiveScale, calculateNewDimensions } = require('../../../utils/canvasScaler');
 
 class CanvasConverter {
     constructor() {
@@ -114,12 +115,12 @@ async function convertWithBrowserCanvas(src, dest, options, converter) {
                     let imgHeight = img.height;
 
                     // 如果是 SVG 且沒有內在尺寸，使用默認尺寸或從 viewBox 解析
-                    if ((imgWidth === 0 || imgHeight === 0) && src.toLowerCase().endsWith('.svg')) {
+                    if (src.toLowerCase().endsWith('.svg')) {
                         // 嘗試從 DataURL 中解析 SVG 的 viewBox
                         const svgContent = atob(img.src.split(',')[1]);
                         const viewBoxMatch = svgContent.match(/viewBox="([^"]+)"/);
                         if (viewBoxMatch) {
-                            const [, , , width, height] = viewBoxMatch[1].split(/\s+/).map(Number);
+                            const [, , width, height] = viewBoxMatch[1].split(/\s+/).map(Number);
                             imgWidth = width || 24;
                             imgHeight = height || 24;
                         } else {
@@ -136,16 +137,13 @@ async function convertWithBrowserCanvas(src, dest, options, converter) {
 
                     // 根據尺寸設置調整 Canvas 大小
                     if (options.sizeType && options.sizeValue) {
-                        const newDimensions = calculateDimensions(imgWidth, imgHeight, options);
+                        const newDimensions = calculateNewDimensions(imgWidth, imgHeight, options);
                         canvas.width = newDimensions.width;
                         canvas.height = newDimensions.height;
                     } else if (options.width && options.height) {
                         canvas.width = options.width;
                         canvas.height = options.height;
-                    }
-
-                    // 檢查是否是透明背景的 SVG
-                    const isSvgInput = src.toLowerCase().endsWith('.svg');
+                    }                    
 
                     // 為不支援透明的格式設置白色背景
                     if (options.backgroundColor) {
@@ -157,50 +155,21 @@ async function convertWithBrowserCanvas(src, dest, options, converter) {
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // 使用高品質縮放算法繪製圖片
-                    // 對於大圖縮小，使用多步驟縮放以獲得更好的品質
-                    if (imgWidth > canvas.width * 2 || imgHeight > canvas.height * 2) {
-                        // 創建臨時 Canvas 進行多步驟縮放
-                        const tempCanvas = document.createElement('canvas');
-                        const tempCtx = tempCanvas.getContext('2d');
-                        tempCtx.imageSmoothingEnabled = true;
-                        tempCtx.imageSmoothingQuality = 'high';
-
-                        // 計算中間尺寸（原始尺寸和目標尺寸的幾何平均）
-                        let currentWidth = imgWidth;
-                        let currentHeight = imgHeight;
-                        const targetWidth = canvas.width;
-                        const targetHeight = canvas.height;
-
-                        // 第一次繪製原始圖片
-                        tempCanvas.width = currentWidth;
-                        tempCanvas.height = currentHeight;
-                        tempCtx.drawImage(img, 0, 0);
-
-                        // 多步驟縮小，每次縮小不超過 50%
-                        while (currentWidth > targetWidth * 1.5 || currentHeight > targetHeight * 1.5) {
-                            currentWidth = Math.max(targetWidth, currentWidth * 0.5);
-                            currentHeight = Math.max(targetHeight, currentHeight * 0.5);
-
-                            const nextCanvas = document.createElement('canvas');
-                            const nextCtx = nextCanvas.getContext('2d');
-                            nextCtx.imageSmoothingEnabled = true;
-                            nextCtx.imageSmoothingQuality = 'high';
-
-                            nextCanvas.width = currentWidth;
-                            nextCanvas.height = currentHeight;
-                            nextCtx.drawImage(tempCanvas, 0, 0, currentWidth, currentHeight);
-
-                            tempCanvas.width = currentWidth;
-                            tempCanvas.height = currentHeight;
-                            tempCtx.drawImage(nextCanvas, 0, 0);
-                        }
-
-                        // 最終繪製到目標 Canvas
-                        ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height);
+                    // 使用漸進式縮放來獲得高品質的圖像
+                    if (imgWidth !== canvas.width || imgHeight !== canvas.height) {
+                        // 創建原始尺寸的 canvas
+                        const originalCanvas = document.createElement('canvas');
+                        originalCanvas.width = imgWidth;
+                        originalCanvas.height = imgHeight;
+                        const originalCtx = originalCanvas.getContext('2d');
+                        originalCtx.drawImage(img, 0, 0);
+                        
+                        // 使用漸進式縮放
+                        const scaledCanvas = progressiveScale(originalCanvas, canvas.width, canvas.height);
+                        ctx.drawImage(scaledCanvas, 0, 0);
                     } else {
-                        // 小幅縮放或放大，直接繪製
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        // 尺寸相同，直接繪製
+                        ctx.drawImage(img, 0, 0);
                     }
 
                     // 轉換為所需格式
@@ -350,56 +319,3 @@ async function convertWithBrowserCanvas(src, dest, options, converter) {
     });
 }
 
-// 計算新的尺寸
-function calculateDimensions(width, height, options) {
-    const ratio = width / height;
-
-    switch (options.sizeType) {
-        case 'maxWidth':
-            return {
-                width: Math.min(width, options.sizeValue),
-                height: Math.min(width, options.sizeValue) / ratio
-            };
-        case 'maxHeight':
-            return {
-                width: Math.min(height, options.sizeValue) * ratio,
-                height: Math.min(height, options.sizeValue)
-            };
-        case 'minWidth':
-            return {
-                width: Math.max(width, options.sizeValue),
-                height: Math.max(width, options.sizeValue) / ratio
-            };
-        case 'minHeight':
-            return {
-                width: Math.max(height, options.sizeValue) * ratio,
-                height: Math.max(height, options.sizeValue)
-            };
-        case 'maxSide':
-            if (width > height) {
-                return {
-                    width: options.sizeValue,
-                    height: options.sizeValue / ratio
-                };
-            } else {
-                return {
-                    width: options.sizeValue * ratio,
-                    height: options.sizeValue
-                };
-            }
-        case 'minSide':
-            if (width < height) {
-                return {
-                    width: options.sizeValue,
-                    height: options.sizeValue / ratio
-                };
-            } else {
-                return {
-                    width: options.sizeValue * ratio,
-                    height: options.sizeValue
-                };
-            }
-        default:
-            return { width, height };
-    }
-}

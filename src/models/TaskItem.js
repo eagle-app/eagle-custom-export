@@ -60,14 +60,14 @@ export class TaskItem {
 
     // Name display logic - consolidated from original displayName function
     get displayName() {
-        const isWaiting = this.isWaiting;
+        const isError = this.isError;
         const useCustomName = this._settings?.nameType === 'custom';
 
-        if (isWaiting && useCustomName) {
+        if (!isError && useCustomName) {
             return `${this._settings.newFileName}${this._settings.startNumber + this._index}`;
         }
 
-        return isWaiting ? this.item?.name : this.newFileName || this.item?.name;
+        return isError ? this.item?.name : this.newFileName || this.item?.name;
     }
 
     get nameClass() {

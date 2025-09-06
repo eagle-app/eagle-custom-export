@@ -1,5 +1,6 @@
 const path = require('path');
 const { validateOutputFile, getOutputPath } = require('../../validate');
+const { progressiveScale, calculateNewDimensions } = require('../../../utils/canvasScaler');
 
 class jxlDecoder {
     constructor() {
@@ -39,17 +40,13 @@ class jxlDecoder {
             
             // 處理尺寸調整
             if (options.sizeType) {
-                const newDimensions = this.calculateNewDimensions(canvas.width, canvas.height, options);
+                const newDimensions = calculateNewDimensions(canvas.width, canvas.height, options);
                 finalWidth = newDimensions.width;
                 finalHeight = newDimensions.height;
                 
-                // 如果需要調整尺寸，創建新的 canvas
+                // 如果需要調整尺寸，使用漸進式縮放
                 if (finalWidth !== canvas.width || finalHeight !== canvas.height) {
-                    const resizedCanvas = document.createElement('canvas');
-                    resizedCanvas.width = finalWidth;
-                    resizedCanvas.height = finalHeight;
-                    const ctx = resizedCanvas.getContext('2d');
-                    ctx.drawImage(canvas, 0, 0, finalWidth, finalHeight);
+                    const resizedCanvas = progressiveScale(canvas, finalWidth, finalHeight);
                     canvas.width = finalWidth;
                     canvas.height = finalHeight;
                     canvas.getContext('2d').drawImage(resizedCanvas, 0, 0);
@@ -83,80 +80,6 @@ class jxlDecoder {
         }
     }
 
-    /**
-     * 計算新的尺寸
-     * @param {number} originalWidth 原始寬度
-     * @param {number} originalHeight 原始高度
-     * @param {Object} options 選項
-     * @returns {Object} 新尺寸 {width, height}
-     */
-    calculateNewDimensions(originalWidth, originalHeight, options) {
-        let newWidth = originalWidth;
-        let newHeight = originalHeight;
-
-        switch (options.sizeType) {
-            case 'maxWidth':
-                if (originalWidth > options.sizeValue) {
-                    newWidth = options.sizeValue;
-                    newHeight = Math.round(originalHeight * (options.sizeValue / originalWidth));
-                }
-                break;
-
-            case 'maxHeight':
-                if (originalHeight > options.sizeValue) {
-                    newHeight = options.sizeValue;
-                    newWidth = Math.round(originalWidth * (options.sizeValue / originalHeight));
-                }
-                break;
-
-            case 'minWidth':
-                if (originalWidth < options.sizeValue) {
-                    newWidth = options.sizeValue;
-                    newHeight = Math.round(originalHeight * (options.sizeValue / originalWidth));
-                }
-                break;
-
-            case 'minHeight':
-                if (originalHeight < options.sizeValue) {
-                    newHeight = options.sizeValue;
-                    newWidth = Math.round(originalWidth * (options.sizeValue / originalHeight));
-                }
-                break;
-
-            case 'maxSide':
-                const maxSide = Math.max(originalWidth, originalHeight);
-                if (maxSide > options.sizeValue) {
-                    const ratio = options.sizeValue / maxSide;
-                    newWidth = Math.round(originalWidth * ratio);
-                    newHeight = Math.round(originalHeight * ratio);
-                }
-                break;
-
-            case 'minSide':
-                const minSide = Math.min(originalWidth, originalHeight);
-                if (minSide < options.sizeValue) {
-                    const ratio = options.sizeValue / minSide;
-                    newWidth = Math.round(originalWidth * ratio);
-                    newHeight = Math.round(originalHeight * ratio);
-                }
-                break;
-
-            case 'exact':
-                if (options.width && options.height) {
-                    newWidth = options.width;
-                    newHeight = options.height;
-                } else if (options.width) {
-                    newWidth = options.width;
-                    newHeight = Math.round(originalHeight * (options.width / originalWidth));
-                } else if (options.height) {
-                    newHeight = options.height;
-                    newWidth = Math.round(originalWidth * (options.height / originalHeight));
-                }
-                break;
-        }
-
-        return { width: newWidth, height: newHeight };
-    }
 }
 
 module.exports = new jxlDecoder();

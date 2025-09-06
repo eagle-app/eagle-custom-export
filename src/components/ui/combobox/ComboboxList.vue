@@ -65,7 +65,9 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 ::v-deep([data-slot="combobox-list"]) {
   max-height: 300px !important;
-  overflow-y: auto !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
 }
 
 ::v-deep(.combobox-group) {

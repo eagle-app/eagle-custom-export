@@ -1,32 +1,5 @@
 <template>
   <div class="error-dialogs">
-    <!-- 錯誤對話框 -->
-    <DialogVue 
-      v-model="localErrorDialog.visible" 
-      :type="localErrorDialog.type" 
-      @ok="handleErrorOk" 
-      :showOkBtn="false"
-    >
-      <template #title>
-        {{ getErrorTitle() }}
-      </template>
-
-      <template #description>
-        <div v-if="!isUnknownError" class="error-description-text">
-          {{ getErrorDescription() }}
-        </div>
-        <textarea 
-          v-else 
-          class="error-description" 
-          readonly 
-          :value="localErrorDialog.errorDescription"
-        ></textarea>
-      </template>
-
-      <template #cancel>
-        {{ $translate('footer.dialog.error.close') }}
-      </template>
-    </DialogVue>
 
     <!-- 檔案重複處理對話框 -->
     <DialogVue 
@@ -162,42 +135,3 @@ const handleConflictKeepBoth = () => {
   });
 };
 </script>
-
-<style lang="scss" scoped>
-.error-dialogs {
-  // 容器不需要特殊樣式，DialogVue 組件自己處理定位和覆蓋層
-}
-
-.error-description-text {
-  color: var(--color-text-primary);
-  font-size: 13px;
-  line-height: 1.5;
-  white-space: pre-wrap; // 保持換行格式
-}
-
-.error-description {
-  max-width: 258px;
-  max-height: 60px;
-  min-width: 200px;
-  min-height: 50px;
-  border: none;
-  outline: none;
-  background: var(--color-black-20);
-  color: var(--color-text-primary);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-family: var(--font-family-mono, 'Courier New', monospace);
-  resize: vertical;
-
-  &:focus {
-    outline: 1px solid var(--color-primary);
-  }
-}
-
-// 使用深度選擇器讓樣式能應用到 v-html 動態插入的元素
-:deep(.dialog-count) {
-  color: var(--color-orange);
-  font-weight: var(--font-weight-bold);
-}
-</style>

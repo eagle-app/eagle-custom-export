@@ -146,21 +146,31 @@ class FFprobe {
 
     /**
      * 檢查檔案是否為動態圖片
+     * 超高效版：直接讀取媒體資訊，無需解析幀內容
      * @param {string} filePath 檔案路徑
      * @returns {Promise<boolean>}
      */
     async isAnimatedImage(filePath) {
+        const fileExt = this._getFileExtension(filePath);
+
+        // HEIC/HEIF 格式不支援動畫
+        if (fileExt === 'heic' || fileExt === 'heif') return false;
+
+        if (fileExt === 'webp') return this._isAnimatedWebP(filePath);
+
+        if (fileExt === 'png') return true;
+
         const ffmpegPaths = await eagle.extraModule.ffmpeg.getPaths();
         const ffprobePath = ffmpegPaths.ffprobe;
 
+        // 優先策略：快速檢查媒體資訊
         const args = [
-            '-v', 'error',
-            '-select_streams', 'v:0',
-            '-count_frames',
-            '-show_entries', 'stream=nb_read_frames',
-            '-of', 'default=nokey=1:noprint_wrappers=1',
+            '-v', 'quiet',
+            '-print_format', 'json',
+            '-show_streams',
+            '-show_format',
             filePath
-        ]
+        ];
 
         return new Promise((resolve, reject) => {
             const process = spawn(ffprobePath, args);
@@ -176,16 +186,146 @@ class FFprobe {
             });
 
             process.on('close', (code) => {
-                if (code === 0) {
-                    const fileExtension = filePath.split('.').pop();
-                    const animatedWebp = stderr.includes('image data not found') && fileExtension === 'webp';
-                    const frames = parseInt(stdout.trim(), 10);
-                    resolve(frames > 1 || animatedWebp);  // 幀數 > 1 → 動態圖 ， 或 WebP 檔案因為目前 ffmpeg 沒辦法處理 動態webp 所以用這種反邏輯來推測輸入是動態webp
+                if (code === 0 && stdout) {
+                    const probeData = JSON.parse(stdout);
+                    const result = this._isAnimatedFromProbeData(probeData, fileExt);
+                    resolve(result);
+
                 } else {
                     reject(new Error(stderr || `ffprobe exited with code ${code}`));
                 }
             });
+
+            process.on('error', (err) => {
+                reject(err);
+            });
+
+            // 2秒超時（檢查媒體資訊應該很快）
+            setTimeout(() => {
+                if (!process.killed) {
+                    process.kill('SIGKILL');
+                    resolve(false); // 超時當作靜態圖片
+                }
+            }, 2000);
         });
+    }
+
+    _isAnimatedWebP(src) {
+        const fs = require('fs');
+        try {
+            const buffer = fs.readFileSync(src);
+            // 檢查 WebP 文件是否包含 ANMF chunk (動畫幀標記)
+            const anmfIndex = buffer.indexOf('ANMF');
+            return anmfIndex !== -1;
+        } catch (error) {
+            console.error('Error reading WebP file:', error);
+            return false;
+        }
+    }
+
+    _isAPNG(src) {
+        const MAX_CHUNKS = 10000; // Arbitrary limit to prevent excessive processing
+        const MAX_CHUNK_SIZE = 10000000; // 10MB - 防止異常大的 chunk size
+        const srcBuffer = fs.readFileSync(src);
+        const bytes = new Uint8Array(srcBuffer);
+
+        // 简单的PNG签名检测
+        if (bytes.length < 8 ||
+            bytes[0] !== 0x89 || bytes[1] !== 0x50 || bytes[2] !== 0x4E || bytes[3] !== 0x47 ||
+            bytes[4] !== 0x0D || bytes[5] !== 0x0A || bytes[6] !== 0x1A || bytes[7] !== 0x0A) {
+            return false;
+        }
+
+        // 搜索acTL块，它存在于APNG中，但不在普通的PNG中
+        let pos = 8;
+        let chunkCount = 0;
+
+        while (pos < bytes.length) {
+            if (chunkCount++ > MAX_CHUNKS) {
+                console.warn('Exceeded maximum chunk count in APNG detection');
+                return false;
+            }
+
+            // 確保有足夠的字節來讀取 length 和 type
+            if (pos + 8 > bytes.length) {
+                break;
+            }
+
+            const length = (bytes[pos] << 24) | (bytes[pos + 1] << 16) | (bytes[pos + 2] << 8) | bytes[pos + 3];
+
+            // 檢查 chunk length 是否合理
+            if (length < 0 || length > MAX_CHUNK_SIZE) {
+                console.warn('Invalid PNG chunk length detected:', length);
+                return false;
+            }
+
+            // 確保有足夠的字節來讀取整個 chunk
+            if (pos + 8 + length + 4 > bytes.length) {
+                // 檔案可能被截斷，但這不一定意味著它是無效的
+                break;
+            }
+
+            const type = String.fromCharCode(bytes[pos + 4], bytes[pos + 5], bytes[pos + 6], bytes[pos + 7]);
+
+            // acTL块表示该PNG是APNG
+            if (type === 'acTL') {
+                return true;
+            }
+
+            // IEND 表示 PNG 結束
+            if (type === 'IEND') {
+                break;
+            }
+
+            // 移动到下一个块
+            pos += 8 + length + 4;
+        }
+
+        return false;
+    }
+
+    /**
+     * 從 ffprobe 資料判斷是否為動態圖片/影片
+     * @private
+     * @param {Object} probeData ffprobe JSON 輸出
+     * @param {string} fileExt 檔案副檔名
+     * @returns {boolean}
+     */
+    _isAnimatedFromProbeData(probeData, fileExt) {
+        const { streams, format } = probeData;
+
+        if (!streams || !Array.isArray(streams)) return false;
+
+        const videoStream = streams.find(stream => stream.codec_type === 'video');
+        if (!videoStream) return false;
+
+        // 檢查幀數
+        if (videoStream.nb_frames) {
+            const frameCount = parseInt(videoStream.nb_frames, 10);
+            if (frameCount > 1) return true;
+        }
+
+        // 檢查時長（大於0秒通常表示動畫/影片）
+        if (format && format.duration) {
+            const duration = parseFloat(format.duration);
+            if (duration > 0.1) return true; // 大於0.1秒
+        }
+
+        if (videoStream.duration) {
+            const streamDuration = parseFloat(videoStream.duration);
+            if (streamDuration > 0.1) return true;
+        }
+
+        // 檢查編解碼器（某些格式的動畫特徵）
+        if (videoStream.codec_name) {
+            const codec = videoStream.codec_name.toLowerCase();
+            // H.264, H.265, VP8, VP9 等影片編碼器通常表示動畫
+            if (['h264', 'h265', 'hevc', 'vp8', 'vp9', 'av1'].includes(codec)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

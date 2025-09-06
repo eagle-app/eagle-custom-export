@@ -102,20 +102,41 @@ const handleKeyDown = (event) => {
             </div>
         </ComboboxAnchor>
 
-        <ComboboxList align="end" side-offset="1" class="w-max min-w-[180px] combobox-list">
-            <ComboboxInput
-                class="focus-visible:ring-0 focus-visible:ring-offset-0 border-0 rounded-none h-10 w-full search-input"
-                :placeholder="$translate('main.SettingSidebar.combobox.searchPlaceholder')" :display-value="() => ''" />
+        <ComboboxList align="end" side-offset="1" class="w-max min-w-[180px] combobox-list combobox-list-container">
+            <!-- 固定的搜索輸入框 -->
+            <div class="search-input-wrapper sticky top-0 z-10 bg-popover border-b border-border px-1 py-1">
+                <ComboboxInput
+                    class="focus-visible:ring-0 focus-visible:ring-offset-0 border-0 rounded-none h-10 w-full search-input"
+                    :placeholder="$translate('main.SettingSidebar.combobox.searchPlaceholder')" :display-value="() => ''" />
+            </div>
 
-            <ComboboxEmpty>
-                {{ $translate('main.SettingSidebar.combobox.noResults') }}
-            </ComboboxEmpty>
+            <!-- 可滾動的內容區域 -->
+            <div class="scrollable-content overflow-y-auto">
+                <ComboboxEmpty>
+                    {{ $translate('main.SettingSidebar.combobox.noResults') }}
+                </ComboboxEmpty>
 
-            <div class="scrollable-content">
-            <!-- 分組選項渲染 -->
-            <template v-if="Array.isArray(options) && options.length > 0 && typeof options[0] === 'object' && options[0].label">
-                <ComboboxGroup v-for="group in options" :key="group.label" class="combobox-group">
-                    <ComboboxItem v-for="option in group.options" :key="option" :value="option" @select="
+                <!-- 分組選項渲染 -->
+                <template v-if="Array.isArray(options) && options.length > 0 && typeof options[0] === 'object' && options[0].label">
+                    <ComboboxGroup v-for="group in options" :key="group.label" class="combobox-group">
+                        <ComboboxItem v-for="option in group.options" :key="option" :value="option" @select="
+                            () => {
+                                selectedValue = option;
+                                emit('update:modelValue', option);
+                            }
+                        " class="relative flex items-center whitespace-nowrap">
+                            <ComboboxItemIndicator class="absolute left-2">
+                                <Check :class="cn('h-4 w-4')" />
+                            </ComboboxItemIndicator>
+                            <span class="pl-7 pr-4">
+                                {{ $translate(translatePrefix + option) }}
+                            </span>
+                        </ComboboxItem>
+                    </ComboboxGroup>
+                </template>
+                <!-- 普通選項渲染（向後兼容） -->
+                <ComboboxGroup v-else class="combobox-group">
+                    <ComboboxItem v-for="option in options" :key="option" :value="option" @select="
                         () => {
                             selectedValue = option;
                             emit('update:modelValue', option);
@@ -128,23 +149,6 @@ const handleKeyDown = (event) => {
                             {{ $translate(translatePrefix + option) }}
                         </span>
                     </ComboboxItem>
-                </ComboboxGroup>
-            </template>
-            <!-- 普通選項渲染（向後兼容） -->
-            <ComboboxGroup v-else class="combobox-group">
-                <ComboboxItem v-for="option in options" :key="option" :value="option" @select="
-                    () => {
-                        selectedValue = option;
-                        emit('update:modelValue', option);
-                    }
-                " class="relative flex items-center whitespace-nowrap">
-                    <ComboboxItemIndicator class="absolute left-2">
-                        <Check :class="cn('h-4 w-4')" />
-                    </ComboboxItemIndicator>
-                    <span class="pl-7 pr-4">
-                        {{ $translate(translatePrefix + option) }}
-                    </span>
-                </ComboboxItem>
                 </ComboboxGroup>
             </div>
         </ComboboxList>
@@ -184,10 +188,31 @@ const handleKeyDown = (event) => {
     font-size: 13px;
 }
 
+/* ComboboxList 容器樣式 */
+.combobox-list-container {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 300px !important;
+    overflow: hidden !important;
+}
+
+/* 固定的搜索輸入框區域 */
+.search-input-wrapper {
+    padding: 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background: var(--box-background) !important;
+    border-bottom: 1px solid var(--color-border-secondary) !important;
+    flex-shrink: 0 !important;
+}
+
 /* 滾動內容區域 */
-.combobox-list :deep(.scrollable-content) {
-    max-height: 240px;
-    overflow-y: auto;
+.scrollable-content {
+    flex: 1 1 auto !important;
+    max-height: 240px !important;
+    overflow-y: auto !important;
+    padding: 4px 0 !important;
 }
 
 /* 移除分組分隔線樣式，改用 border-bottom */

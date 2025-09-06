@@ -1,4 +1,4 @@
-const BaseBuilder = require("./base");
+const BaseBuilder = require('./base');
 
 class WebmBuilder extends BaseBuilder {
     constructor() {
@@ -7,20 +7,57 @@ class WebmBuilder extends BaseBuilder {
 
     buildArgs(src, dest, options) {
         const baseArgs = super.buildArgs(src, dest, options);
-        const ffmpegModes = {
-            "vp8": "libvpx",
-            "vp9": "libvpx-vp9",
-        };
+
         this.args = [
-            '-c:v', ffmpegModes[options.codec],
             '-pix_fmt', 'yuva420p',
-            // 開發階段，先用最快，到時候再討論是否要做UI給使用者選
-            '-cpu-used', '5',
             ...(options.codec === 'vp8' ? ['-auto-alt-ref', '0'] : []),
+            ...super.getCodecArgs(options, this.getGPUArgs.bind(this)),
             ...this.getFrameRateArgs(options),
             ...baseArgs,
         ];
+
         return this.args.filter(arg => arg);
+    }
+
+
+    getGPUArgs(options, osType, gpuType) {
+        // VideoToolbox 不支援 VP8/VP9/AV1，所以 WebM 在 macOS 上只能用 CPU 編碼器
+        const gpuArgs = {
+            vp8: {
+                // 沒有任何 GPU 硬體編碼器支援 VP8（AMD / NVIDIA / Intel 都沒有）
+                Darwin: 'libvpx',
+                Windows_NT: {
+                    NVIDIA: 'libvpx',
+                    AMD: 'libvpx',
+                    Intel: 'libvpx'
+                }
+            },
+            vp9: {
+                Darwin: 'libvpx-vp9',
+                Windows_NT: {
+                    NVIDIA: 'vp9_nvenc',
+                    AMD: 'libvpx-vp9',
+                    Intel: 'libvpx-vp9'
+                }
+            }
+        };
+
+        // Windows系統沒有GPU類型時使用軟體編解碼器
+        if (osType === 'Windows_NT' && !gpuType) {
+            return [
+                '-c:v', gpuArgs[options.codec].Darwin,
+                '-cpu-used', '5',
+            ]; // 使用CPU編解碼器
+        }
+
+        if (osType === 'Windows_NT' && gpuType) {
+            return ['-c:v', gpuArgs[options.codec][osType][gpuType]];
+        }
+
+        return [
+            '-c:v', gpuArgs[options.codec][osType],
+            '-cpu-used', '5',
+        ];
     }
 
     getQualityArgs(options) {
